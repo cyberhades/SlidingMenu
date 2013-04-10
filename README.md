@@ -1,10 +1,10 @@
-SlidingMenu
+ï»¿SlidingMenu
 ===========
 fork from [jfeinstein10/SlidingMenu](https://github.com/jfeinstein10/SlidingMenu)
 
-ÎÒµÄĞŞ¸Ä
+æˆ‘çš„ä¿®æ”¹
 -----------
-- ÄÜÖ¸¶¨×ó¡¢ÓÒ²à»¬µÄÆ«ÒÆ
+- èƒ½æŒ‡å®šå·¦ã€å³ä¾§æ»‘çš„åç§»
 
 Developed By
 ------------
