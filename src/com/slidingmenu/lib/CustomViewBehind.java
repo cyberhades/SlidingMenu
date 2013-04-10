@@ -28,6 +28,7 @@ public class CustomViewBehind extends ViewGroup {
 	private View mSecondaryContent;
 	private int mMarginThreshold;
 	private int mWidthOffset;
+	private int mSecondayWidthOffset;
 	private CanvasTransformer mTransformer;
 	private boolean mChildrenEnabled;
 
@@ -51,13 +52,23 @@ public class CustomViewBehind extends ViewGroup {
 
 	public void setWidthOffset(int i) {
 		mWidthOffset = i;
+		if(mSecondayWidthOffset==0)
+			mSecondayWidthOffset = mWidthOffset;
 		requestLayout();
 	}
-
+	public void setSecondaryWidthOffset(int i) {
+		mSecondayWidthOffset = i;
+		requestLayout();
+	}
+	
 	public int getBehindWidth() {
 		return mContent.getWidth();
 	}
-
+	public int getSecondaryWidth(){
+		if(mSecondaryContent!=null)
+			return mSecondaryContent.getWidth();
+		return getBehindWidth();
+	}
 	public void setContent(View v) {
 		if (mContent != null)
 			removeView(mContent);
@@ -87,10 +98,12 @@ public class CustomViewBehind extends ViewGroup {
 	public void setChildrenEnabled(boolean enabled) {
 		mChildrenEnabled = enabled;
 	}
+	private float mScrollX = 0.0f;
 
 	@Override
 	public void scrollTo(int x, int y) {
 		super.scrollTo(x, y);
+		mScrollX = x;
 		if (mTransformer != null)
 			invalidate();
 	}
@@ -104,12 +117,11 @@ public class CustomViewBehind extends ViewGroup {
 	public boolean onTouchEvent(MotionEvent e) {
 		return !mChildrenEnabled;
 	}
-
 	@Override
 	protected void dispatchDraw(Canvas canvas) {
 		if (mTransformer != null) {
 			canvas.save();
-			mTransformer.transformCanvas(canvas, mViewAbove.getPercentOpen());
+			mTransformer.transformCanvas(canvas, mViewAbove.getPercentOpen(mScrollX < mViewAbove.getContent().getLeft() ? 1 : 2));
 			super.dispatchDraw(canvas);
 			canvas.restore();
 		} else
@@ -122,7 +134,7 @@ public class CustomViewBehind extends ViewGroup {
 		final int height = b - t;
 		mContent.layout(0, 0, width-mWidthOffset, height);
 		if (mSecondaryContent != null)
-			mSecondaryContent.layout(0, 0, width-mWidthOffset, height);
+			mSecondaryContent.layout(0, 0, width-mSecondayWidthOffset, height);
 	}
 
 	@Override
@@ -132,9 +144,10 @@ public class CustomViewBehind extends ViewGroup {
 		setMeasuredDimension(width, height);
 		final int contentWidth = getChildMeasureSpec(widthMeasureSpec, 0, width-mWidthOffset);
 		final int contentHeight = getChildMeasureSpec(heightMeasureSpec, 0, height);
+		final int secondaryWidth = getChildMeasureSpec(widthMeasureSpec, 0, width-mSecondayWidthOffset);
 		mContent.measure(contentWidth, contentHeight);
 		if (mSecondaryContent != null)
-			mSecondaryContent.measure(contentWidth, contentHeight);
+			mSecondaryContent.measure(secondaryWidth, contentHeight);
 	}
 
 	private int mMode;
@@ -220,8 +233,8 @@ public class CustomViewBehind extends ViewGroup {
 			if (x <= content.getLeft()) {
 				scrollTo((int)((x + getBehindWidth())*mScrollScale), y);				
 			} else {
-				scrollTo((int)(getBehindWidth() - getWidth() + 
-						(x-getBehindWidth())*mScrollScale), y);				
+				scrollTo((int)(getSecondaryWidth() - getWidth() + 
+						(x-getSecondaryWidth())*mScrollScale), y);				
 			}
 		}
 		if (vis == View.INVISIBLE)
@@ -249,7 +262,7 @@ public class CustomViewBehind extends ViewGroup {
 			case 0:
 				return content.getLeft() - getBehindWidth();
 			case 2:
-				return content.getLeft() + getBehindWidth();
+				return content.getLeft() + getSecondaryWidth();
 			}
 		}
 		return content.getLeft();
@@ -268,7 +281,7 @@ public class CustomViewBehind extends ViewGroup {
 		if (mMode == SlidingMenu.LEFT) {
 			return content.getLeft();
 		} else if (mMode == SlidingMenu.RIGHT || mMode == SlidingMenu.LEFT_RIGHT) {
-			return content.getLeft() + getBehindWidth();
+			return content.getLeft() + getSecondaryWidth();
 		}
 		return 0;
 	}
@@ -362,13 +375,13 @@ public class CustomViewBehind extends ViewGroup {
 			right = content.getLeft();
 		} else if (mMode == SlidingMenu.RIGHT) {
 			left = content.getRight();
-			right = content.getRight() + getBehindWidth();			
+			right = content.getRight() + getSecondaryWidth();			
 		} else if (mMode == SlidingMenu.LEFT_RIGHT) {
 			left = content.getLeft() - getBehindWidth();
 			right = content.getLeft();
 			canvas.drawRect(left, 0, right, getHeight(), mFadePaint);
 			left = content.getRight();
-			right = content.getRight() + getBehindWidth();			
+			right = content.getRight() + getSecondaryWidth();
 		}
 		canvas.drawRect(left, 0, right, getHeight(), mFadePaint);
 	}
@@ -427,5 +440,7 @@ public class CustomViewBehind extends ViewGroup {
 		mSelectorDrawable = b;
 		refreshDrawableState();
 	}
+
+
 
 }

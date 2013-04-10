@@ -346,7 +346,13 @@ public class CustomViewAbove extends ViewGroup {
 			return mViewBehind.getBehindWidth();
 		}
 	}
-
+	public int getSecondaryMenuWidth(){
+		if (mViewBehind == null) {
+			return 0;
+		} else {
+			return mViewBehind.getSecondaryWidth();
+		}
+	}
 	public int getChildWidth(int i) {
 		switch (i) {
 		case 0:
@@ -805,7 +811,8 @@ public class CustomViewAbove extends ViewGroup {
 		mScrollX = x;
 		if (mEnabled)
 			mViewBehind.scrollBehindTo(mContent, x, y);	
-		((SlidingMenu)getParent()).manageLayers(getPercentOpen());
+		((SlidingMenu)getParent())
+			.manageLayers(getPercentOpen(mScrollX <= mContent.getLeft() ? 1 : 2));
 	}
 
 	private int determineTargetPage(float pageOffset, int velocity, int deltaX) {
@@ -822,17 +829,27 @@ public class CustomViewAbove extends ViewGroup {
 		return targetPage;
 	}
 
-	protected float getPercentOpen() {
-		return Math.abs(mScrollX-mContent.getLeft()) / getBehindWidth();
+	protected float getPercentOpen(int d) {
+		switch (d) {
+		case 1:
+			return Math.abs(mScrollX-mContent.getLeft()) / getBehindWidth();
+		case 2:
+			return Math.abs(mScrollX-mContent.getLeft()) / getSecondaryMenuWidth();
+		default:
+			return Math.abs(mScrollX-mContent.getLeft()) / getBehindWidth();
+		}
+		
 	}
-
 	@Override
 	protected void dispatchDraw(Canvas canvas) {
 		super.dispatchDraw(canvas);
 		// Draw the margin drawable if needed.
 		mViewBehind.drawShadow(mContent, canvas);
-		mViewBehind.drawFade(mContent, canvas, getPercentOpen());
-		mViewBehind.drawSelector(mContent, canvas, getPercentOpen());
+		
+		mViewBehind
+			.drawFade(mContent, canvas, getPercentOpen(mScrollX <= mContent.getLeft() ? 1 : 2));
+		mViewBehind
+			.drawSelector(mContent, canvas, getPercentOpen(mScrollX <= mContent.getLeft() ? 1 : 2));
 	}
 
 	// variables for drawing
